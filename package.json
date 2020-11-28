@@ -25,6 +25,7 @@
   ],
   "author": "Christopher Jensen",
   "license": "MIT",
+  "homepage": "https://github.com/sec0ndhand/sigue",
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.2",
