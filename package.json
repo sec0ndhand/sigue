@@ -1,0 +1,43 @@
+{
+  "name": "sigue",
+  "version": "0.1.0",
+  "description": "Schema Generator for sequelize-graphql, including create, update, delete, and mutation subscriptions.",
+  "main": "index.js",
+  "scripts": {
+    "babel-node": "npx babel-node ./src",
+    "test": "npm run test-unit && npm run test-integration",
+    "test-unit": "mocha test/unit/*.test.js",
+    "test-integration": "mocha test/integration/*.test.js",
+    "clean": "rm -rf dist && mkdir dist",
+    "build-server": "npx babel -d ./dist ./src --copy-files",
+    "build": "npm run clean && npm run build-server"
+  },
+  "keywords": [
+    "graphql",
+    "sequelize",
+    "crud",
+    "schema",
+    "postgres",
+    "mysql",
+    "msql",
+    "redis",
+    "subscription"
+  ],
+  "author": "Christopher Jensen",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.2.2",
+    "@babel/node": "^7.2.2",
+    "@babel/plugin-proposal-object-rest-spread": "^7.2.0",
+    "@babel/preset-env": "^7.2.3"
+  },
+  "dependencies": {
+    "graphql-subscriptions": "^1.1.0",
+    "lodash": "^4.17.20"
+  },
+  "peerDependencies": {
+    "graphql": "^14.0.0",
+    "graphql-sequelize": "^9.0.0"
+  }
+}
