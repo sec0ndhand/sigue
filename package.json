@@ -1,6 +1,6 @@
 {
   "name": "sigue",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Schema Generator for sequelize-graphql, including create, update, delete, and mutation subscriptions.",
   "main": "index.js",
   "scripts": {

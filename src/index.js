@@ -45,7 +45,7 @@ export const defaultOptions = {
 const getAssociations = (mod, depth) => {
 const md = models[modelNamesArray.find(m => m === mod.name)];
 // console.log(Object.keys(models[mod.name].options[CLASSMETHODS][ASSOCIATE]))
-if (CLASSMETHODS in models[mod.name].options && 
+if (models[mod.name] && models[mod.name].options && CLASSMETHODS in models[mod.name].options && 
     ASSOCIATE in models[mod.name].options[CLASSMETHODS] &&
     typeof models[mod.name].options.classMethods.getGraphQlAssociations == "function") {
       // console.log("we called it!")
