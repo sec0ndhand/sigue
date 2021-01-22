@@ -29,16 +29,16 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-const CLASSMETHODS = 'classMethods';
-const ASSOCIATE = 'associate';
+const CLASSMETHODS = "classMethods";
+const ASSOCIATE = "associate";
 let modelTypes = [];
 let modelNamesArray;
 let models;
 let authenticated;
 /**
-* @property pubSub - needs to implement asyncIterator, and publish functions
-* @property
-*/
+ * @property pubSub - needs to implement asyncIterator, and publish functions
+ * @property
+ */
 
 const defaultOptions = {
   pubSub: {
@@ -72,10 +72,6 @@ const getModelGraphQLType = (md, depth, model_suffix) => {
     associations = getAssociations(md, depth);
   } // console.log(associations);
 
-
-  const fields = _objectSpread(_objectSpread({}, associations), (0, _graphqlSequelize.attributeFields)(md, {
-    globalId: true
-  }));
 
   const modType = new _graphql.GraphQLObjectType({
     name: md.name + (model_suffix ? model_suffix : ""),
@@ -215,7 +211,7 @@ const getMutatationObject = (mod, options) => {
           let value = tmpArgs.where[k]; // console.log(typeof value);
 
           return _objectSpread(_objectSpread({}, prev), {}, {
-            [k]: typeof value == 'function' ? value(info.variableValues) : value
+            [k]: typeof value == "function" ? value(info.variableValues) : value
           });
         }, {}); // console.log(where);
 
@@ -238,10 +234,10 @@ const getMutatationObject = (mod, options) => {
   };
 };
 /**
-*  
-* @param {Sequelize Model} mod 
-* @returns {Object}
-*/
+ *
+ * @param {Sequelize Model} mod
+ * @returns {Object}
+ */
 
 
 exports.getMutatationObject = getMutatationObject;
@@ -291,10 +287,10 @@ const whereMatch = (obj, where) => {
 //   return {
 //       [`${mod.name.toLowerCase()}_changed`]: {
 //         type: modelTypes.find(modelT => modelT.name == mod.name),
-//         description: `Subscribes to ${mod.name} changes.  
-//         The delete object will return an object that 
+//         description: `Subscribes to ${mod.name} changes.
+//         The delete object will return an object that
 //         represents the where clause used to delete.`,
-//         subscribe: () => options.pubsub.asyncIterator(`${mod.name.toLowerCase()}_changed`)        
+//         subscribe: () => options.pubsub.asyncIterator(`${mod.name.toLowerCase()}_changed`)
 //       }
 //   };
 // }
@@ -341,17 +337,17 @@ const getGenericSchemaObjectFromModel = (md, options, modelTypes) => {
 };
 
 function titleCase(str) {
-  return str.toLowerCase().split(' ').map(function (word) {
+  return str.toLowerCase().split(" ").map(function (word) {
     return word.charAt(0).toUpperCase() + word.slice(1);
-  }).join(' ');
+  }).join(" ");
 }
 /**
-* @name schema
-* @description given sequelize object, a GraphQL schema will be returned
-* @param {Array<SequelizeModel>} models 
-* @param {Object} options 
-* @returns {GraphQLSchema}
-*/
+ * @name schema
+ * @description given sequelize object, a GraphQL schema will be returned
+ * @param {Array<SequelizeModel>} models
+ * @param {Object} options
+ * @returns {GraphQLSchema}
+ */
 
 
 const schema = function (modeles, options) {
@@ -363,7 +359,7 @@ const schema = function (modeles, options) {
   );
   return new _graphql.GraphQLSchema({
     query: new _graphql.GraphQLObjectType({
-      name: 'RootQueryType',
+      name: "RootQueryType",
       fields: _objectSpread({}, modelNamesArray.reduce((prev, mod, i) => {
         if (modelNamesArray.length - 1 === i) {
           console.log("last one");
@@ -373,13 +369,13 @@ const schema = function (modeles, options) {
       }, {}))
     }),
     mutation: new _graphql.GraphQLObjectType({
-      name: 'RootMutationType',
+      name: "RootMutationType",
       fields: _objectSpread({}, modelNamesArray.reduce((prev, mod, i) => {
         return _objectSpread(_objectSpread({}, prev), getMutatationObject(models[mod], options));
       }, {}))
     }),
     subscription: new _graphql.GraphQLObjectType({
-      name: 'Subscription',
+      name: "Subscription",
       fields: _objectSpread({}, modelNamesArray.reduce((prev, mod, i) => {
         return _objectSpread(_objectSpread({}, prev), getSubscriptionObject(models[mod], options));
       }, {}))
