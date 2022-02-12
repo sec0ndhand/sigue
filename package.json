@@ -1,6 +1,6 @@
 {
   "name": "sigue",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "Schema Generator for sequelize-graphql, including create, update, delete, and mutation subscriptions.",
   "main": "index.js",
   "scripts": {
@@ -34,11 +34,14 @@
     "@babel/preset-env": "^7.2.3"
   },
   "dependencies": {
+    "change-case": "^4.1.2",
+    "graphql-relay": "^0.10.0",
+    "graphql-sequelize": "^9.4.3",
     "graphql-subscriptions": "^1.1.0",
     "lodash": "^4.17.20"
   },
   "peerDependencies": {
-    "graphql": "^14.0.0",
-    "graphql-sequelize": "^9.0.0"
+    "graphql": "^16",
+    "sequelize": "^6"
   }
 }

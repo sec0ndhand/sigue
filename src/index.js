@@ -6,6 +6,8 @@ import {
   argsToFindOptions,
 } from "graphql-sequelize";
 
+import { pascalCase } from "change-case";
+
 import {
   GraphQLObjectType,
   GraphQLNonNull,
@@ -26,6 +28,16 @@ let modelTypes = [];
 let modelNamesArray;
 let models;
 let authenticated;
+
+export function unbase64(i) {
+  return new Buffer(i, "base64").toString("ascii");
+}
+
+function getId(id) {
+  let [type, db_id] = unbase64(id).split(":");
+  console.log(unbase64(id), db_id);
+  return db_id;
+}
 
 /**
  * @property pubSub - needs to implement asyncIterator, and publish functions
@@ -77,7 +89,7 @@ const getModelGraphQLType = (md, depth, model_suffix) => {
     associations = getAssociations(md, depth);
   }
   console.log(associations, md.name);
-  let fields = attributeFields(md, { globalId: true })
+  let fields = attributeFields(md, { globalId: true });
   const modType = new GraphQLObjectType({
     name: md.name + (model_suffix ? model_suffix : ""),
     description: `Generated model for ${md.name}`,
@@ -85,6 +97,7 @@ const getModelGraphQLType = (md, depth, model_suffix) => {
     fields: () => ({
       ...getAssociations(md, depth),
       ...fields,
+      _deleted_: { type: GraphQLBoolean },
     }),
   });
 
@@ -100,10 +113,7 @@ export const getMutatationObject = (mod, options) => {
   options = options ? options : defaultOptions;
   const inputArgs = attributeFields(mod);
   let updateArgs;
-  const {
-    [`${mod.name.toLowerCase()}_id`]: deleted,
-    ...createArgs
-  } = inputArgs;
+  const { [mod.primaryKeyAttributes[0]]: deleted, ...createArgs } = inputArgs;
 
   const deleteArgs = defaultListArgs(mod);
   // make other fields not required on update
@@ -112,7 +122,7 @@ export const getMutatationObject = (mod, options) => {
     //console.log(`${mod.name}: ${k}: ${JSON.stringify(kObj.type)}`);
     if (
       kObj.type.toString().endsWith("!") &&
-      k.toLowerCase().includes(`${mod.name}_id`) == false
+      k.toLowerCase().includes(mod.primaryKeyAttributes[0]) == false
     ) {
       let obj_type = kObj.type.toString().toLowerCase();
       let type_to_assign;
@@ -166,7 +176,7 @@ export const getMutatationObject = (mod, options) => {
     typeof options.pubsub.publish === "function";
 
   return {
-    [`create${titleCase(mod.name)}`]: {
+    [pascalCase(`create_${mod.name}`)]: {
       type: modelTypes.find((modelT) => modelT.name == mod.name),
       args: assign(createArgs),
       description: `Creates a new ${mod.name}`,
@@ -191,20 +201,26 @@ export const getMutatationObject = (mod, options) => {
             "create"
           );
         if (pubSubIsDefined) {
-          options.pubsub.publish(`${mod.name.toLowerCase()}_changed`, {
-            [`${mod.name.toLowerCase()}_changed`]: ret.dataValues,
-          });
+          options.pubsub.publish(
+            pascalCase(`${mod.name.toLowerCase()}_changed`),
+            {
+              [pascalCase(`${mod.name.toLowerCase()}_changed`)]: ret.dataValues,
+            }
+          );
         }
         return new Promise((rsv, rej) => rsv(ret));
       }),
     },
-    [`update${titleCase(mod.name)}`]: {
+    [pascalCase(`update_${mod.name}`)]: {
       type: modelTypes.find((modelT) => modelT.name == mod.name),
       args: assign(updateArgs),
       description: `Updates an existing ${mod.name}`,
       resolve: options.authenticated(async (obj, args) => {
         // return mod.save(args, {returning: true, validate: false});
         var tmpArgs = args;
+        const id = args["id"]
+          ? getId(args["id"])
+          : args[mod.primaryKeyAttributes[0]];
         if (preMutationDefined)
           tmpArgs = await mod.options.classMethods.preMutation(
             args,
@@ -213,14 +229,12 @@ export const getMutatationObject = (mod, options) => {
           );
         await mod.update(tmpArgs, {
           where: {
-            [`${mod.name.toLowerCase()}_id`]: args[
-              `${mod.name.toLowerCase()}_id`
-            ],
+            [mod.primaryKeyAttributes[0]]: id,
           },
         });
 
-        let ret = await mod.findById(args[`${mod.name.toLowerCase()}_id`]);
-        // console.log(`${titleCase(mod.name)}_changed`, {[`${titleCase(mod.name)}_changed`]: ret.dataValues});
+        let ret = await mod.findByPk(id);
+        // console.log(`${(mod.name)}_changed`, {[`${titleCase(mod.name)}_changed`]: ret.dataValues});
 
         if (postMutationDefined)
           ret = await mod.options.classMethods.postMutation(
@@ -230,18 +244,21 @@ export const getMutatationObject = (mod, options) => {
           );
 
         if (pubSubIsDefined) {
-          options.pubsub.publish(`${mod.name.toLowerCase()}_changed`, {
-            [`${mod.name.toLowerCase()}_changed`]: ret.dataValues,
-          });
+          options.pubsub.publish(
+            pascalCase(`${mod.name.toLowerCase()}_changed`),
+            {
+              [pascalCase(`${mod.name.toLowerCase()}_changed`)]: ret.dataValues,
+            }
+          );
         }
         // console.log(ret);
         return new Promise((rsv, rej) => rsv(ret));
       }),
     },
-    [`delete${titleCase(mod.name)}`]: {
+    [pascalCase(`delete_${mod.name}`)]: {
       type: modelTypes.find((modelT) => modelT.name == mod.name),
       args: assign(deleteArgs),
-      description: `Deletes an amount of ${mod.name}s`,
+      description: `Deletes ${mod.name}s`,
       resolve: options.authenticated(async (obj, args, context, info) => {
         // console.log(JSON.stringify({...argsToFindOptions(args)}, null, '\t') );
         var tmpArgs = args;
@@ -251,21 +268,34 @@ export const getMutatationObject = (mod, options) => {
             models,
             "delete"
           );
-        let where = Object.keys(tmpArgs.where).reduce((prev, k, i) => {
-          let value = tmpArgs.where[k];
-          // console.log(typeof value);
-          return {
-            ...prev,
-            [k]:
-              typeof value == "function" ? value(info.variableValues) : value,
-          };
-        }, {});
-        // console.log(where);
+        const id = args.where["id"]
+          ? getId(args.where["id"])
+          : args[mod.primaryKeyAttributes[0]];
+        let where = id
+          ? { [mod.primaryKeyAttributes[0]]: id }
+          : Object.keys(tmpArgs.where).reduce((prev, k, i) => {
+              let value = tmpArgs.where[k];
+              // console.log(typeof value);
+              return {
+                ...prev,
+                [k]:
+                  typeof value == "function"
+                    ? value(info.variableValues)
+                    : value,
+              };
+            }, {});
+        console.log(where);
 
         if (pubSubIsDefined) {
-          options.pubsub.publish(`${mod.name.toLowerCase()}_changed`, {
-            [`${mod.name.toLowerCase()}_changed`]: obj,
-          });
+          options.pubsub.publish(
+            pascalCase(`${mod.name.toLowerCase()}_changed`),
+            {
+              [pascalCase(`${mod.name.toLowerCase()}_changed`)]: {
+                _deleted_: true,
+                ...where,
+              },
+            }
+          );
         }
         let ret = await mod.destroy({ where });
         console.log(ret);
@@ -277,9 +307,7 @@ export const getMutatationObject = (mod, options) => {
           );
         return new Promise((rsv, rej) =>
           rsv({
-            [`${mod.name.toLowerCase()}_id`]: tmpArgs.where[
-              `${mod.name.toLowerCase()}_id`
-            ],
+            [mod.primaryKeyAttributes[0]]: id,
           })
         );
       }),
@@ -302,7 +330,7 @@ const getSubscriptionObject = (mod, options) => {
 
   const defaultArgs = defaultListArgs(mod);
   return {
-    [`${mod.name.toLowerCase()}_changed`]: {
+    [pascalCase(`${mod.name.toLowerCase()}_changed`)]: {
       type: modelTypes.find((modelT) => modelT.name == mod.name),
       args: defaultArgs,
       description: `Subscribes to ${mod.name} changes.  The delete object will return an object that represents the where clause used to delete.`,
@@ -310,7 +338,7 @@ const getSubscriptionObject = (mod, options) => {
         () => {
           if (pubSubIsDefined) {
             return options.pubsub.asyncIterator(
-              `${mod.name.toLowerCase()}_changed`
+              pascalCase(`${mod.name.toLowerCase()}_changed`)
             );
           } else return {};
         },
@@ -318,7 +346,7 @@ const getSubscriptionObject = (mod, options) => {
           // if no where clause is provided, send what is already there
           if (!variables["where"]) return true;
           const rtn = whereMatch(
-            payload[`${mod.name.toLowerCase()}_changed`],
+            payload[pascalCase(`${mod.name.toLowerCase()}_changed`)],
             variables["where"]
           );
           return rtn ? true : false;
@@ -346,32 +374,10 @@ const whereMatch = (obj, where) => {
           );
         }, true)
       : true;
-  // console.log("rtn, obj[key], obj, where: ",
-  //           rtn ? true : false,
-  //           obj[keys[0]],
-  //           obj,
-  //           where
-  //         );
   return rtn ? true : false;
 };
 
-// const getSubscriptionObject = (mod, options) => {
-//   return {
-//       [`${mod.name.toLowerCase()}_changed`]: {
-//         type: modelTypes.find(modelT => modelT.name == mod.name),
-//         description: `Subscribes to ${mod.name} changes.
-//         The delete object will return an object that
-//         represents the where clause used to delete.`,
-//         subscribe: () => options.pubsub.asyncIterator(`${mod.name.toLowerCase()}_changed`)
-//       }
-//   };
-// }
-
 const getGenericSchemaObjectFromModel = (md, options, modelTypes) => {
-  // console.log(`schemaGenerators start, ${md.name}:`, JSON.stringify(Object.keys(md.sequelize.models.document.tableAttributes.shipto.references), null, '\t'))
-  // console.log("", modelTypes);
-  // const associations = {};
-  //const inputArgs = attributeFields(md);
   const inputArgs = defaultListArgs(md);
   let found_type = modelTypes
     ? modelTypes.find((modelT) => modelT.name == md.name + "_full")
@@ -381,18 +387,22 @@ const getGenericSchemaObjectFromModel = (md, options, modelTypes) => {
     : modelTypes.find((modelT) => modelT.name == md.name);
   // console.log(JSON.stringify(found_type));
   const modObj = {
-    [md.name]: {
+    [pascalCase(md.name)]: {
       type: found_type, //getModelGraphQLType(md, associations),
       // args will automatically be mapped to `where`
       args: {
         [md.primaryKeyAttribute]: {
           description: `${md.primaryKeyAttribute} of the ${md.name}`,
-          type: new GraphQLNonNull(GraphQLInt),
+          type: GraphQLString,
         },
+        id: {
+          description: `The encoded version of the primary key of the ${md.name}`,
+          type: GraphQLString,
+        }
       },
       resolve: options.authenticated(resolver(md, { dataLoader: true }), md),
     },
-    [`${md.name}s`]: {
+    [`${pascalCase(md.name)}s`]: {
       type: new GraphQLList(found_type),
       args: {
         ...inputArgs,
@@ -411,7 +421,7 @@ function titleCase(str) {
   return str
     .toLowerCase()
     .split(" ")
-    .map(function(word) {
+    .map(function (word) {
       return word.charAt(0).toUpperCase() + word.slice(1);
     })
     .join(" ");
@@ -424,7 +434,7 @@ function titleCase(str) {
  * @param {Object} options
  * @returns {GraphQLSchema}
  */
-export const schema = function(modeles, options) {
+export const schema = function (modeles, options) {
   models = modeles;
   authenticated = options.authenticated;
   modelNamesArray = Object.keys(models).filter(
