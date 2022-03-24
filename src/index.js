@@ -30,7 +30,7 @@ let models;
 let authenticated;
 
 export function unbase64(i) {
-  return new Buffer(i, "base64").toString("ascii");
+  return Buffer.from(i, 'base64').toString('ascii')
 }
 
 function getId(id) {
@@ -115,7 +115,16 @@ export const getMutatationObject = (mod, options) => {
   let updateArgs;
   const { [mod.primaryKeyAttributes[0]]: deleted, ...createArgs } = inputArgs;
 
-  const deleteArgs = defaultListArgs(mod);
+  const deleteArgs = {
+    [mod.primaryKeyAttributes[0]]: {
+      type: GraphQLString,
+      description: `The primary_key (${mod.primaryKeyAttributes[0]}) of the ${mod.name} to delete`,
+    },
+    id: {
+      type: GraphQLString,
+      description: `The id of the ${mod.name} to delete`,
+    },
+  };
   // make other fields not required on update
   Object.keys(inputArgs).map((k) => {
     let kObj = inputArgs[k];
@@ -157,11 +166,7 @@ export const getMutatationObject = (mod, options) => {
     updateArgs = { ...updateArgs, [k]: kObj };
   });
 
-  let preMutationDefined =
-    mod &&
-    mod.options &&
-    mod.options.classMethods &&
-    typeof mod.options.classMethods.preMutation === "function";
+  let preMutationDefined = typeof mod?.options?.classMethods?.preMutation === "function";
 
   let postMutationDefined =
     mod &&
@@ -268,8 +273,9 @@ export const getMutatationObject = (mod, options) => {
             models,
             "delete"
           );
-        const id = args.where["id"]
-          ? getId(args.where["id"])
+          // console.log({tmpArgs});
+        const id = args["id"] || args.where["id"]
+          ? getId(args["id"] || args.where["id"])
           : args[mod.primaryKeyAttributes[0]];
         let where = id
           ? { [mod.primaryKeyAttributes[0]]: id }
@@ -284,7 +290,7 @@ export const getMutatationObject = (mod, options) => {
                     : value,
               };
             }, {});
-        console.log(where);
+        // console.log(where);
 
         if (pubSubIsDefined) {
           options.pubsub.publish(
@@ -298,7 +304,7 @@ export const getMutatationObject = (mod, options) => {
           );
         }
         let ret = await mod.destroy({ where });
-        console.log(ret);
+        // console.log(ret);
         if (postMutationDefined)
           ret = await mod.options.classMethods.postMutation(
             ret,
@@ -308,6 +314,7 @@ export const getMutatationObject = (mod, options) => {
         return new Promise((rsv, rej) =>
           rsv({
             [mod.primaryKeyAttributes[0]]: id,
+            _deleted_: true
           })
         );
       }),

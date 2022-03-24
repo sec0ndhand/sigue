@@ -40,7 +40,7 @@ let models;
 let authenticated;
 
 function unbase64(i) {
-  return new Buffer(i, "base64").toString("ascii");
+  return Buffer.from(i, 'base64').toString('ascii');
 }
 
 function getId(id) {
@@ -108,6 +108,8 @@ const getModelGraphQLType = (md, depth, model_suffix) => {
 };
 
 const getMutatationObject = (mod, options) => {
+  var _mod$options, _mod$options$classMet;
+
   options = options ? options : defaultOptions;
   const inputArgs = (0, _graphqlSequelize.attributeFields)(mod);
   let updateArgs;
@@ -118,7 +120,16 @@ const getMutatationObject = (mod, options) => {
   } = inputArgs,
         createArgs = _objectWithoutProperties(inputArgs, [_mod$primaryKeyAttrib].map(_toPropertyKey));
 
-  const deleteArgs = (0, _graphqlSequelize.defaultListArgs)(mod); // make other fields not required on update
+  const deleteArgs = {
+    [mod.primaryKeyAttributes[0]]: {
+      type: _graphql.GraphQLString,
+      description: `The primary_key (${mod.primaryKeyAttributes[0]}) of the ${mod.name} to delete`
+    },
+    id: {
+      type: _graphql.GraphQLString,
+      description: `The id of the ${mod.name} to delete`
+    }
+  }; // make other fields not required on update
 
   Object.keys(inputArgs).map(k => {
     let kObj = inputArgs[k]; //console.log(`${mod.name}: ${k}: ${JSON.stringify(kObj.type)}`);
@@ -164,7 +175,7 @@ const getMutatationObject = (mod, options) => {
       [k]: kObj
     });
   });
-  let preMutationDefined = mod && mod.options && mod.options.classMethods && typeof mod.options.classMethods.preMutation === "function";
+  let preMutationDefined = typeof (mod === null || mod === void 0 ? void 0 : (_mod$options = mod.options) === null || _mod$options === void 0 ? void 0 : (_mod$options$classMet = _mod$options.classMethods) === null || _mod$options$classMet === void 0 ? void 0 : _mod$options$classMet.preMutation) === "function";
   let postMutationDefined = mod && mod.options && mod.options.classMethods && typeof mod.options.classMethods.postMutation === "function";
   let pubSubIsDefined = options && options.pubsub && options.pubsub.publish && typeof options.pubsub.publish === "function";
   return {
@@ -226,8 +237,9 @@ const getMutatationObject = (mod, options) => {
       resolve: options.authenticated(async (obj, args, context, info) => {
         // console.log(JSON.stringify({...argsToFindOptions(args)}, null, '\t') );
         var tmpArgs = args;
-        if (preMutationDefined) tmpArgs = await mod.options.classMethods.preMutation(args, models, "delete");
-        const id = args.where["id"] ? getId(args.where["id"]) : args[mod.primaryKeyAttributes[0]];
+        if (preMutationDefined) tmpArgs = await mod.options.classMethods.preMutation(args, models, "delete"); // console.log({tmpArgs});
+
+        const id = args["id"] || args.where["id"] ? getId(args["id"] || args.where["id"]) : args[mod.primaryKeyAttributes[0]];
         let where = id ? {
           [mod.primaryKeyAttributes[0]]: id
         } : Object.keys(tmpArgs.where).reduce((prev, k, i) => {
@@ -236,8 +248,7 @@ const getMutatationObject = (mod, options) => {
           return _objectSpread(_objectSpread({}, prev), {}, {
             [k]: typeof value == "function" ? value(info.variableValues) : value
           });
-        }, {});
-        console.log(where);
+        }, {}); // console.log(where);
 
         if (pubSubIsDefined) {
           options.pubsub.publish((0, _changeCase.pascalCase)(`${mod.name.toLowerCase()}_changed`), {
@@ -249,11 +260,12 @@ const getMutatationObject = (mod, options) => {
 
         let ret = await mod.destroy({
           where
-        });
-        console.log(ret);
+        }); // console.log(ret);
+
         if (postMutationDefined) ret = await mod.options.classMethods.postMutation(ret, models, "delete");
         return new Promise((rsv, rej) => rsv({
-          [mod.primaryKeyAttributes[0]]: id
+          [mod.primaryKeyAttributes[0]]: id,
+          _deleted_: true
         }));
       })
     }
