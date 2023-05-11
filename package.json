@@ -1,8 +1,8 @@
 {
   "name": "sigue",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Schema Generator for sequelize-graphql, including create, update, delete, and mutation subscriptions.",
-  "main": "index.js",
+  "main": "./index.js",
   "scripts": {
     "babel-node": "npx babel-node ./src",
     "test": "npm run test-unit && npm run test-integration",
@@ -10,7 +10,8 @@
     "test-integration": "mocha test/integration/*.test.js",
     "clean": "rm -rf dist && mkdir dist",
     "build-server": "npx babel -d ./dist ./src --copy-files",
-    "build": "npm run clean && npm run build-server"
+    "build": "npm run clean && npm run build-server",
+    "release": "npx auto shipit --base-branch=master"
   },
   "keywords": [
     "graphql",
@@ -27,21 +28,19 @@
   "license": "MIT",
   "homepage": "https://github.com/sec0ndhand/sigue",
   "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.2.2",
-    "@babel/node": "^7.2.2",
-    "@babel/plugin-proposal-object-rest-spread": "^7.2.0",
-    "@babel/preset-env": "^7.2.3"
+    "@babel/cli": "^7.21.0",
+    "@babel/core": "^7.21.0",
+    "@babel/node": "^7.20.7",
+    "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
+    "@babel/preset-env": "^7.21.0",
+    "auto": "^10.46.0",
+    "sqlite3": "^5.1.6"
   },
   "dependencies": {
     "change-case": "^4.1.2",
-    "graphql-relay": "^0.10.0",
-    "graphql-sequelize": "^9.4.3",
-    "graphql-subscriptions": "^1.1.0",
-    "lodash": "^4.17.20"
-  },
-  "peerDependencies": {
     "graphql": "^16",
+    "graphql-sequelize": "^9.4.3",
+    "graphql-subscriptions": "^2.0.0",
     "sequelize": "^6"
   }
 }
