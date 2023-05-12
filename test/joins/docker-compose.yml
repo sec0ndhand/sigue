@@ -1,0 +1,19 @@
+# key-db is a multi-threaded redis clone
+
+services:
+  key-db:
+    image: eqalpha/keydb:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - key-db:/data
+    environment:
+      - REDIS_PASSWORD=123456
+      - REDIS_PORT=6379
+
+volumes:
+  key-db:
+    driver: local
+
+
+

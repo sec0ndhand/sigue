@@ -28,19 +28,14 @@
   "license": "MIT",
   "homepage": "https://github.com/sec0ndhand/sigue",
   "devDependencies": {
-    "@babel/cli": "^7.21.0",
-    "@babel/core": "^7.21.0",
-    "@babel/node": "^7.20.7",
-    "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
-    "@babel/preset-env": "^7.21.0",
-    "auto": "^10.46.0",
-    "sqlite3": "^5.1.6"
+    "auto": "^10.46.0"
   },
   "dependencies": {
     "change-case": "^4.1.2",
     "graphql": "^16",
     "graphql-sequelize": "^9.4.3",
     "graphql-subscriptions": "^2.0.0",
-    "sequelize": "^6"
+    "sequelize": "^6",
+    "sqlite3": "^5.1.6"
   }
 }

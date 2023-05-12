@@ -10,7 +10,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "graphql-http": "^1.18.0"
+    "graphql-http": "^1.18.0",
+    "graphql-redis-subscriptions": "^2.6.0",
+    "graphql-subscriptions": "^2.0.0",
+    "sigue": "github:sec0ndhand/sigue#v/2.0.0",
+    "sqlite3": "^5.1.6",
+    "subscriptions-transport-ws": "^0.11.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"
