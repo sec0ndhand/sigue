@@ -1,4 +1,4 @@
-const { schema: schemGenerator, getModels } = require("sigue");
+const { schema: schemaGenerator, getModels } = require("sigue");
 const env = process.env.NODE_ENV || "development";
 const { createServer } = require("./src/server.js");
 const { pubsub } = require("./src/redis-subscriptions.js");
@@ -21,7 +21,7 @@ db.sequelize.sync().then(() => {
 
 // Construct a schema, using GraphQL schema language
 
-var schema = schemGenerator(db.sequelize.models, {
+var schema = schemaGenerator(db.sequelize.models, {
   pubsub,
   authenticated: (resolver) => async (parent, args, context, info) => {
     console.log({ parent, args, context, info });

@@ -520,7 +520,7 @@ const schema = function (modeles, options = defaultOptions) {
       name: "RootMutationType",
       fields: {
         ...modelNamesArray.reduce((prev, mod, i) => {
-          return { ...prev, ...getMutatationObject(models[mod], options = defaultOptions) };
+          return { ...prev, ...getMutatationObject(models[mod], options) };
         }, {}),
       },
     }),
@@ -528,7 +528,7 @@ const schema = function (modeles, options = defaultOptions) {
       name: "Subscription",
       fields: {
         ...modelNamesArray.reduce((prev, mod, i) => {
-          return { ...prev, ...getSubscriptionObject(models[mod], options = defaultOptions) };
+          return { ...prev, ...getSubscriptionObject(models[mod], options) };
         }, {}),
       },
     }),

@@ -11,10 +11,15 @@ const options = {
   };
 
 const pubsub = new RedisPubSub({
-  connectionListener: (err) => console.log(err),
   publisher: new Redis(options),
   subscriber: new Redis(options),
   connection: process.env.REDIS_URL || 'redis://localhost:6379',
+  connectionListener: (err) => {
+    if (err) {
+      console.error(err);
+    }
+    console.info('Pubsub: Succefully connected to redis');
+  }
 });
 
 module.exports = { pubsub };
