@@ -382,8 +382,6 @@ const getSubscriptionObject = (mod, options = defaultOptions) => {
     options.pubsub.publish &&
     typeof options.pubsub.publish === "function";
 
-  // console.log({pubsubIsDefined});
-
   const defaultArgs = defaultListArgs(mod);
   return {
     [snakecase(`${mod.name.toLowerCase()}_changed`)]: {
