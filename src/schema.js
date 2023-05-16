@@ -382,7 +382,7 @@ const getSubscriptionObject = (mod, options = defaultOptions) => {
     options.pubsub.publish &&
     typeof options.pubsub.publish === "function";
 
-  console.log({pubsubIsDefined});
+  // console.log({pubsubIsDefined});
 
   const defaultArgs = defaultListArgs(mod);
   return {

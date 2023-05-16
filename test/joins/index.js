@@ -15,20 +15,13 @@ db.sequelize.sync().then(() => {
   console.log("Database is ready");
 });
 
-
-// Set up the redis pubsub
-// defaultOptions.pubsub = pubsub
-
-// Construct a schema, using GraphQL schema language
-
+// generate a schema, based on the sequelize models
 var schema = schemaGenerator(db.sequelize.models, {
   pubsub,
   authenticated: (resolver) => async (parent, args, context, info) => {
-    console.log({ parent, args, context, info });
     return resolver(parent, args, context, info);
   },
 });
 
 // Start the server
 createServer({ schema });
-console.log(Object.keys(pubsub));
