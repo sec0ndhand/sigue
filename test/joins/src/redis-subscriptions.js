@@ -1,5 +1,8 @@
 const { RedisPubSub } = require('graphql-redis-subscriptions');
 const Redis = require( 'ioredis' );
+const { PubSub } = require('graphql-subscriptions');
+const pubsubmemory = new PubSub();
+
 
 const options = {
     host: process.env.REDIS_DOMAIN_NAME || 'localhost',
@@ -22,4 +25,6 @@ const pubsub = new RedisPubSub({
   }
 });
 
-module.exports = { pubsub };
+const pubsubexport = process.env.NODE_ENV === 'production' ? pubsub : pubsubmemory;
+
+module.exports = { pubsub: pubsubexport };

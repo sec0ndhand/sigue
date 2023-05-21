@@ -1,4 +1,6 @@
 'use strict';
+const { firebaseAuthSync } = require('../src/firebase.js')
+
 const {
   Model
 } = require('sequelize');
@@ -17,19 +19,43 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
   }
+  const date = new Date();
+  date.setFullYear(date.getFullYear() - 13)
+  const thirteenYearsAgo = date.toISOString()
   User.init({
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true
     },
+    firebase_id: DataTypes.STRING,
     name: DataTypes.STRING,
-    state: DataTypes.BOOLEAN,
-    birth: DataTypes.DATE,
-    card: DataTypes.INTEGER
+    email: {
+      type: DataTypes.STRING,
+      unique: true,
+      allowNull: false,
+      validate: {
+        isEmail: { msg: "Must be a valid email address" },
+      },
+      trim: true,
+    },
+    phone: DataTypes.STRING,
+    birth: {
+      type: DataTypes.DATE,
+      validate: {
+        isDate: { msg: "Must be a valid email address" },
+        // isBefore: { args: thirteenYearsAgo, msg: "Must be older than 13." },
+      },
+      trim: true,
+    },
+    auth_level: DataTypes.INTEGER,
+    active: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'User',
+    hooks: {
+      beforeSave: firebaseAuthSync
+    }
   });
   return User;
 };

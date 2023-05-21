@@ -11,6 +11,7 @@
         "stopOnEntry": false,
         "runtimeArgs": [ "--nolazy" ],
         "preLaunchTask": null,
+        "envFile": "${workspaceFolder}/.env",
         "env": {
           "NODE_ENV": "development",
           "LOG_LEVEL": "debug"
@@ -25,6 +26,7 @@
         "name": "Attach",
         "port": 5858,
         "address": "localhost",
+        "envFile": "${workspaceFolder}/.env",
         "restart": false,
         "sourceMaps": false,
         "outFiles": [],

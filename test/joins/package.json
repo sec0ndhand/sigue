@@ -2,17 +2,20 @@
   "name": "joins",
   "version": "1.0.0",
   "description": "",
-  "main": "index.ms",
+  "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "env $(cat .env) nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "firebase-admin": "^11.8.0",
     "graphql-http": "^1.18.0",
     "graphql-redis-subscriptions": "^2.6.0",
     "graphql-subscriptions": "^2.0.0",
+    "jsonwebtoken": "^9.0.0",
+    "nanoid": "^3.3.6",
     "sigue": "github:sec0ndhand/sigue#v/2.0.0",
     "sqlite3": "^5.1.6",
     "subscriptions-transport-ws": "^0.11.0"
