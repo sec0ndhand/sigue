@@ -1,0 +1,20 @@
+.git
+.vscode
+.ipynb_checkpoints
+notebooks
+unused
+Dockerfile
+.DS_Store
+.gitignore
+README.md
+env.*
+.env.*
+.env*
+devops
+data
+test*
+node_modules
+
+# To prevent storing dev/temporary container data
+*.csv
+tmp

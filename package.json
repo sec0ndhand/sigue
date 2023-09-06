@@ -28,7 +28,8 @@
   "license": "MIT",
   "homepage": "https://github.com/sec0ndhand/sigue",
   "devDependencies": {
-    "auto": "^10.46.0"
+    "auto": "^10.46.0",
+    "axios": "^1.5.0"
   },
   "dependencies": {
     "change-case": "^4.1.2",
@@ -37,5 +38,8 @@
     "graphql-subscriptions": "^2.0.0",
     "sequelize": "^6",
     "sqlite3": "^5.1.6"
+  },
+  "bin": {
+    "sigue": "./src/generate/index.js"
   }
 }

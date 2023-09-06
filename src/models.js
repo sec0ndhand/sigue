@@ -6,6 +6,7 @@ const Sequelize = require("sequelize");
 
 
 function getModels({ config = null, db_url = null, modelsDirectory = null }) {
+  const models = path.join(process.cwd(), modelsDirectory);
   const db = {};
   let sequelize;
   if (db_url) {
@@ -19,7 +20,7 @@ function getModels({ config = null, db_url = null, modelsDirectory = null }) {
     );
   }
 
-  fs.readdirSync(modelsDirectory)
+  fs.readdirSync(models)
     .filter((file) => {
       return (
         file.indexOf(".") !== 0 &&
@@ -29,7 +30,7 @@ function getModels({ config = null, db_url = null, modelsDirectory = null }) {
       );
     })
     .forEach((file) => {
-      const model = require(path.join(modelsDirectory, file))(
+      const model = require(path.join(models, file))(
         sequelize,
         Sequelize.DataTypes
       );
@@ -43,7 +44,7 @@ function getModels({ config = null, db_url = null, modelsDirectory = null }) {
   });
 
   db.sequelize = sequelize;
-  db.Sequelize = Sequelize;
+  // db.Sequelize = Sequelize;
   return db;
 }
 

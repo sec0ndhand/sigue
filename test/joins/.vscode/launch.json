@@ -32,6 +32,21 @@
         "outFiles": [],
         "localRoot": "${workspaceFolder}",
         "remoteRoot": null
+      },
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "Test",
+        "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+        "args": [
+          "-u",
+          "tdd",
+          "--timeout",
+          "999999",
+          "--colors",
+          "${workspaceFolder}/test"
+        ],
+        "internalConsoleOptions": "openOnSessionStart"
       }
     ]
   }
