@@ -435,6 +435,7 @@ const getGenericSchemaObjectFromModel = (md, options, modelTypes) => {
   const inputArgs = defaultListArgs(md);
   let found_type = findModel(md.name + "_full");
   found_type = findModel(md.name);
+  console.log({md, name: md.name, found_type, modelTypes});
   const modObj = {
     [snakecase(md.name)]: {
       type: found_type, //getModelGraphQLType(md, associations),
@@ -475,16 +476,24 @@ function titleCase(str) {
     })
     .join(" ");
 }
+/**
+ * The complete Triforce, or one or more components of the Triforce.
+ * @typedef {Object} SigueInitOptions
+ * @property {Object} models - Sequelize models used for generating graphQL endpoints.
+ * @property {Object} options - Options used for setting up sequelize.
+ * @property {Object} query - User added query types.
+ * @property {Object} mutation - User added mutation types.
+ * @property {Object} subscription - User added subscription types.
+ */
 
 /**
  * @name schema
  * @description given sequelize object, a GraphQL schema will be returned
- * @param {Array<SequelizeModel>} models
- * @param {Object} options
+ * @param {SigueInitOptions} options
  * @returns {GraphQLSchema}
  */
-const schema = function (modeles, options = defaultOptions) {
-  models = modeles;
+const schema = function ({models: modelos, options = defaultOptions, query = {}, mutation = {}, subscription = {}}) {
+  models = modelos;
   authenticated = options.authenticated;
   modelNamesArray = Object.keys(models).filter(
     (md) => md.toLowerCase() != "sequelize"
@@ -510,8 +519,7 @@ const schema = function (modeles, options = defaultOptions) {
             ),
           };
         }, {}), //,
-        // Field for searching for a user by name
-        //documentSearch: documentSearch()
+        ...query
       },
     }),
     mutation: new GraphQLObjectType({
@@ -520,6 +528,7 @@ const schema = function (modeles, options = defaultOptions) {
         ...modelNamesArray.reduce((prev, mod, i) => {
           return { ...prev, ...getMutatationObject(models[mod], options) };
         }, {}),
+        ...mutation
       },
     }),
     subscription: new GraphQLObjectType({
@@ -528,6 +537,7 @@ const schema = function (modeles, options = defaultOptions) {
         ...modelNamesArray.reduce((prev, mod, i) => {
           return { ...prev, ...getSubscriptionObject(models[mod], options) };
         }, {}),
+        ...subscription
       },
     }),
   });

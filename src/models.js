@@ -6,7 +6,7 @@ const Sequelize = require("sequelize");
 
 
 function getModels({ config = null, db_url = null, modelsDirectory = null }) {
-  const models = path.join(process.cwd(), modelsDirectory);
+  const models = modelsDirectory;
   const db = {};
   let sequelize;
   if (db_url) {
