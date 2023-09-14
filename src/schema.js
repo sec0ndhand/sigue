@@ -5,7 +5,7 @@ const {
   JSONType,
 } = require("graphql-sequelize");
 
-const { pascalCase, snakecase } = require("change-case");
+const { toPascalCase: pascalCase, toSnakeCase: snakecase } = require("./utils/converters");
 
 const {
   GraphQLObjectType,
@@ -492,7 +492,7 @@ function titleCase(str) {
  * @param {SigueInitOptions} options
  * @returns {GraphQLSchema}
  */
-const schema = function ({models: modelos, options = defaultOptions, query = {}, mutation = {}, subscription = {}}) {
+const schema = ({models: modelos, options = defaultOptions, query = {}, mutation = {}, subscription = {}}) => {
   models = modelos;
   authenticated = options.authenticated;
   modelNamesArray = Object.keys(models).filter(
