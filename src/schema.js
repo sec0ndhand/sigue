@@ -435,7 +435,6 @@ const getGenericSchemaObjectFromModel = (md, options, modelTypes) => {
   const inputArgs = defaultListArgs(md);
   let found_type = findModel(md.name + "_full");
   found_type = findModel(md.name);
-  console.log({md, name: md.name, found_type, modelTypes});
   const modObj = {
     [snakecase(md.name)]: {
       type: found_type, //getModelGraphQLType(md, associations),
