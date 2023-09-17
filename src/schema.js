@@ -5,7 +5,7 @@ const {
   JSONType,
 } = require("graphql-sequelize");
 
-const { toPascalCase: pascalCase, toSnakeCase: snakecase } = require("./utils/converters");
+const { toPascalCase: pascalCase } = require("./utils/converters");
 
 const {
   GraphQLObjectType,
@@ -256,16 +256,16 @@ const getMutatationObject = (mod, options = defaultOptions) => {
           );
         if (pubsubIsDefined) {
           options.pubsub.publish(
-            snakecase(`${mod.name.toLowerCase()}_changed`),
+            pascalCase(`${mod.name.toLowerCase()}_changed`),
             {
-              [snakecase(`${mod.name.toLowerCase()}_changed`)]: ret.dataValues,
+              [pascalCase(`${mod.name.toLowerCase()}_changed`)]: ret.dataValues,
             }
           );
         }
         return new Promise((rsv, rej) => rsv(ret));
       }),
     },
-    [snakecase(`update_${mod.name}`)]: {
+    [pascalCase(`update_${mod.name}`)]: {
       type: findModel(mod.name),
       args: Object.assign(updateArgs),
       description: `Updates an existing ${mod.name}`,
@@ -299,9 +299,9 @@ const getMutatationObject = (mod, options = defaultOptions) => {
 
         if (pubsubIsDefined) {
           options.pubsub.publish(
-            snakecase(`${mod.name.toLowerCase()}_changed`),
+            pascalCase(`${mod.name.toLowerCase()}_changed`),
             {
-              [snakecase(`${mod.name.toLowerCase()}_changed`)]: ret.dataValues,
+              [pascalCase(`${mod.name.toLowerCase()}_changed`)]: ret.dataValues,
             }
           );
         }
@@ -309,7 +309,7 @@ const getMutatationObject = (mod, options = defaultOptions) => {
         return new Promise((rsv, rej) => rsv(ret));
       }),
     },
-    [snakecase(`delete_${mod.name}`)]: {
+    [pascalCase(`delete_${mod.name}`)]: {
       type: findModel(mod.name),
       args: Object.assign(deleteArgs),
       description: `Deletes ${mod.name}s`,
@@ -342,9 +342,9 @@ const getMutatationObject = (mod, options = defaultOptions) => {
 
         if (pubsubIsDefined) {
           options.pubsub.publish(
-            snakecase(`${mod.name.toLowerCase()}_changed`),
+            pascalCase(`${mod.name.toLowerCase()}_changed`),
             {
-              [snakecase(`${mod.name.toLowerCase()}_changed`)]: {
+              [pascalCase(`${mod.name.toLowerCase()}_changed`)]: {
                 _deleted_: true,
                 ...where,
               },
@@ -384,7 +384,7 @@ const getSubscriptionObject = (mod, options = defaultOptions) => {
 
   const defaultArgs = defaultListArgs(mod);
   return {
-    [snakecase(`${mod.name.toLowerCase()}_changed`)]: {
+    [pascalCase(`${mod.name.toLowerCase()}_changed`)]: {
       type: findModel(mod.name),
       args: defaultArgs,
       description: `Subscribes to ${mod.name} changes.  The delete object will return an object that represents the where clause used to delete.`,
@@ -392,7 +392,7 @@ const getSubscriptionObject = (mod, options = defaultOptions) => {
         () => {
           if (pubsubIsDefined) {
             return options.pubsub.asyncIterator(
-              snakecase(`${mod.name.toLowerCase()}_changed`)
+              pascalCase(`${mod.name.toLowerCase()}_changed`)
             );
           } else return {};
         },
@@ -400,7 +400,7 @@ const getSubscriptionObject = (mod, options = defaultOptions) => {
           // if no where clause is provided, send what is already there
           if (!variables["where"]) return true;
           const rtn = whereMatch(
-            payload[snakecase(`${mod.name.toLowerCase()}_changed`)],
+            payload[pascalCase(`${mod.name.toLowerCase()}_changed`)],
             variables["where"]
           );
           return rtn ? true : false;
@@ -436,7 +436,7 @@ const getGenericSchemaObjectFromModel = (md, options, modelTypes) => {
   let found_type = findModel(md.name + "_full");
   found_type = findModel(md.name);
   const modObj = {
-    [snakecase(md.name)]: {
+    [pascalCase(md.name)]: {
       type: found_type, //getModelGraphQLType(md, associations),
       // args will automatically be mapped to `where`
       args: {
@@ -451,7 +451,7 @@ const getGenericSchemaObjectFromModel = (md, options, modelTypes) => {
       },
       resolve: options.authenticated(resolver(md, { dataLoader: true }), md),
     },
-    [`${snakecase(md.name)}s`]: {
+    [`${pascalCase(md.name)}s`]: {
       type: new GraphQLList(found_type),
       args: {
         ...inputArgs,
@@ -466,15 +466,6 @@ const getGenericSchemaObjectFromModel = (md, options, modelTypes) => {
   return modObj;
 };
 
-function titleCase(str) {
-  return str
-    .toLowerCase()
-    .split(" ")
-    .map(function (word) {
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
-    .join(" ");
-}
 /**
  * The complete Triforce, or one or more components of the Triforce.
  * @typedef {Object} SigueInitOptions
